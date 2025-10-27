@@ -1,64 +1,112 @@
-# lastfm-project
+# LastFM Analysis - Minimal Version
 
-Analysis and exploration of the Last.fm dataset for the ITC6001 (Introduction to Big Data) final project. The code loads raw `.dat` files, explores the data, stores it in MySQL, performs outlier handling and temporal analysis, and computes user similarity and friend–listening correlations. Outputs (figures, CSV/TSV files, and neighbor lists) are written to `output/`.
-
-## Contents
-- Project overview
-- Setup (Python + MySQL)
-- How to run
-- Tasks (Q1–Q5)
-- Project structure
-- Notes and assumptions
-- License
+Implementation of Last.fm dataset analysis.
 
 ---
 
-## Project overview
-The project answers the following questions using the Last.fm data:
-- Q1: Read and explore the raw `.dat` files; visualize top artists and tags.
-- Q2: Clean/outlier handling for artists and tags and export cleaned CSVs.
-- Q3: Temporal exploration of user listening behavior.
-- Q4: User–user similarity based on the user–artist matrix (cosine similarity) and export of nearest neighbors.
-- Q5: Relationship between user friendship links and listening similarity.
+## Project Overview
+
+Analyzes Last.fm music listening data to answer:
+- **1**: Data exploration and basic statistics
+- **2**: Outlier detection and removal (z-score method)
+- **3**: Temporal analysis of user activity
+- **4**: User similarity via cosine similarity and k-NN
+- **5**: Correlation between friendship and listening behavior
 
 ---
 
 ## Setup
 
-### Python
-- Python 3.10+
-- Install dependencies:
-  ```bash
-  pip install -r requirements.txt
-  ```
-  If you do not have a `requirements.txt`, install:
-  ```bash
-  pip install pandas numpy matplotlib seaborn mysql-connector-python
-  ```
+### 1. Install MySQL
 
-### MySQL (required for DB steps)
-- A local MySQL server (8.x recommended).
-- Create a user with permissions to create databases and tables.
-- Configure credentials via environment variables (recommended) or edit `src/db_utils.py`:
-  - `host`, `user`, `password`
-- Database name used: `LastFM` (created by the code).
+```bash
+sudo apt update
+sudo apt install mysql-server
+sudo systemctl start mysql
+```
 
-> Tip: replace hard‑coded credentials in `src/db_utils.py` with environment variables (read via `os.getenv`) before publishing.
+### 2. Create Database User
+
+```bash
+sudo mysql -p
+# Enter your MySQL password
+```
+
+In MySQL:
+```sql
+CREATE USER 'lastfm'@'localhost' IDENTIFIED BY 'lastfm123';
+GRANT ALL PRIVILEGES ON *.* TO 'lastfm'@'localhost';
+EXIT;
+```
+
+### 3. Configure Credentials
+
+Edit `src/db_utils.py` line 3:
+```python
+DB_CONFIG = {'host': 'localhost', 'user': 'lastfm', 'password': 'lastfm123'}
+```
+
+### 4. Create Virtual Environment
+
+```bash
+python3 -m venv lastfm.venv
+source lastfm.venv/bin/activate  # Linux/Mac
+# OR
+lastfm.venv\Scripts\activate     # Windows
+```
+
+### 5. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 6. Add Data Files
+
+Ensure your data files are in the `data/` directory:
+```
+lastfm-analysis/
+├── data/
+│   ├── artists.dat
+│   ├── tags.dat
+│   ├── user_artists.dat
+│   ├── user_taggedartists.dat
+│   └── user_friends.dat
+├── src/
+└── main.py
+```
 
 ---
 
-## How to run
+## Run
 
-From the project root (`lastfm_project/`):
-
-1) Create database schema and tables, then insert data:
 ```bash
-python src/db_utils.py            # creates DB + tables
-python src/insert_data.py         # loads .dat files and inserts to MySQL
+python main.py
 ```
 
-2) Run individual analysis tasks:
+This executes all analysis steps in sequence:
+1. Creates MySQL database and tables
+2. Loads data into MySQL
+3. Explores data 
+4. Removes outliers 
+5. Temporal analysis 
+6. Computes user similarity 
+7. Analyzes friend correlations 
+
+**Output:** Results saved to `output/` directory
+
+---
+
+## Individual Scripts
+
+Run scripts separately if needed:
+
 ```bash
+# Database setup
+python src/db_utils.py           # Create tables
+python src/data_loader.py        # Insert data
+
+# Analysis
 python src/q1_read_explore.py
 python src/q2_outlier_removal.py
 python src/q3_temporal_exploration.py
@@ -66,48 +114,47 @@ python src/q4_user_similarity.py
 python src/q5_user_friend_correlation.py
 ```
 
-All outputs are saved in `output/`.
+---
+
+## Project Structure
+
+```
+lastfm-analysis/
+├── data/                      # Raw .dat files
+├── output/                    # Generated results (auto-created)
+├── src/
+│   ├── db_utils.py           # MySQL connection + schema (25 lines)
+│   ├── data_loader.py        # Data loading + insertion (31 lines)
+│   ├── q1_read_explore.py    # Data exploration (11 lines)
+│   ├── q2_outlier_removal.py # Outlier removal (34 lines)
+│   ├── q3_temporal_exploration.py # Temporal analysis (32 lines)
+│   ├── q4_user_similarity.py # Similarity + k-NN (46 lines)
+│   └── q5_user_friend_correlation.py # Correlations (18 lines)
+├── main.py                    # Pipeline orchestration (17 lines)
+├── requirements.txt
+└── lastfm.venv/              # Virtual environment (create locally)
+```
 
 ---
 
-## Tasks
+## Output Files
 
-### Q1 — Read & Explore
-- Load `.dat` files into pandas.
-- Basic EDA and figures: `q1_top_10_artists.png`, `q1_top_10_tags.png`.
+**Q2 - Outlier Removal:**
+- `output/q2_clean_artists.csv`
+- `output/q2_clean_tags.csv`
+- `output/q2_clean_users.csv`
 
-### Q2 — Outlier handling
-- Identify and remove/clip problematic records.
-- Export cleaned CSVs: `q2_cleaned_artists.csv`, `q2_cleaned_tags.csv`.
+**Q3 - Temporal Analysis:**
+- `output/q3_monthly_counts.csv`
+- `output/q3_top5_tags.csv`
+- `output/q3_top5_artists.csv`
 
-### Q3 — Temporal exploration
-- Analyze listening patterns over time; export per‑question outputs to `output/`.
+**Q4 - User Similarity:**
+- `output/user-pairs-similarity.dat`
+- `output/neighbors-k3-users.dat`
+- `output/neighbors-k10-users.dat`
 
-### Q4 — User similarity
-- Build user–artist matrix and compute cosine similarity.
-- Export similarity and nearest neighbors (e.g., `neighbors-k3-users.dat`, `neighbors-k10-users.dat`).
-
-### Q5 — Friends vs similarity
-- Examine correlation between friendship links and listening similarity.
-- Produce summary statistics/plots in `output/`.
-
----
-
-## Project structure
-```
-lastfm_project/
-├─ data/                          # raw .dat files
-├─ output/                        # generated figures/tables
-├─ src/
-│  ├─ db_utils.py                 # MySQL connection + schema creation
-│  ├─ load_data.py                # file loading helpers
-│  ├─ insert_data.py              # insert pandas DataFrames into MySQL
-│  ├─ q1_read_explore.py
-│  ├─ q2_outlier_removal.py
-│  ├─ q3_temporal_exploration.py
-│  ├─ q4_user_similarity.py
-│  └─ q5_user_friend_correlation.py
-└─ main.py                        # optional orchestration entrypoint
-```
+**Q5 - Correlations:**
+- Console output showing correlation coefficients
 
 ---

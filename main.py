@@ -1,57 +1,23 @@
 import os
-from src import (
-    db_utils,
-    insert_data,
-    q1_read_explore,
-    q2_outlier_removal,
-    q3_temporal_exploration,
-    q4_user_similarity,
-    q5_user_friend_correlation
-)
 
-# Ensure output folder exists 
-os.makedirs("output", exist_ok=True)
+from src import db_utils
+from src import data_loader
+from src import q1_read_explore
+from src import q2_outlier_removal
+from src import q3_temporal_exploration
+from src import q4_user_similarity
+from src import q5_user_friend_correlation
+
+os.makedirs('output', exist_ok=True)
 
 def main():
-    print("\nStarting LastFM project pipeline...")
-
-    # Q1: Create the database and tables
-    print("\nCreating database and tables...")
     db_utils.create_database()
+    data_loader.insert_data()
+    q1_read_explore.explore_data()
+    q2_outlier_removal.clean_outliers()
+    q3_temporal_exploration.temporal_analysis()
+    q4_user_similarity.user_similarity()
+    q5_user_friend_correlation.friend_correlation()
 
-    # Q1: Insert data into MySQL
-    print("\nInserting data into tables...")
-    insert_data.run()
-
-    # Q1: Explore and describe data
-    print("\nExploring data...")
-    q1_read_explore.run()
-
-    # Q2: Remove outliers using z-score method
-    print("\nRemoving outliers...")
-    q2_outlier_removal.run()
-
-    # Q3: Monthly trends analysis (Pandas + MySQL)
-    print("\nMonthly tag and artist activity analysis...")
-    q3_temporal_exploration.run()
-
-    # Q4: Compute cosine similarity between users
-    print("\nComputing user-user cosine similarity...")
-    q4_user_similarity.run_similarity()
-
-    # Q4: Compute k-nearest neighbors for users
-    print("\nFinding k-nearest neighbors for users...")
-    q4_user_similarity.run_knn()
-
-    # Q5: Correlation analysis between users and friends
-    print("\nQ5.1: Correlation between artist count and friend count")
-    q5_user_friend_correlation.q5_1_artist_friend_correlation()
-
-    # Q5: Correlation analysis between total listening time of a user and the number of friends
-    print("\nQ5.2: Correlation between total listening and friend count")
-    q5_user_friend_correlation.q5_2_listening_friend_correlation()
-
-    print("\nCompleted successfully!")
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

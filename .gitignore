@@ -1,16 +1,35 @@
+# Virtual Environment
+lastfm.venv/
+venv/
+env/
+*.venv
+
+# Python
 __pycache__/
 *.py[cod]
-.venv/
-env/
-venv/
-.DS_Store
-Thumbs.db
+*$py.class
+*.so
+.Python
+
+# Output files
+output/
+*.csv
+*.dat
+*.json
+*.png
+
+# IDE
 .vscode/
 .idea/
-output/
-*.log
-.env
-*.env
-.ipynb_checkpoints/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MySQL
 *.sql
-*.dump
+*.db
+
